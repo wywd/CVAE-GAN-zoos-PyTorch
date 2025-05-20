@@ -33,7 +33,7 @@ img_transform = transforms.Compose([
 ])
 
 # mnist dataset mnist数据集下载
-mnist = datasets.MNIST(root='./data/', train=True, transform=img_transform, download=True)
+mnist = datasets.MNIST(root='../data/', train=True, transform=img_transform, download=True)
 
 # data loader 数据载入
 dataloader = torch.utils.data.DataLoader(dataset=mnist, batch_size=batch_size, shuffle=True)
@@ -47,17 +47,17 @@ class VAE(nn.Module):
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(16),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(32),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(32),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout(0.1, inplace=True),
+            nn.ReLU(inplace=True),
         )
         self.encoder_fc1 = nn.Linear(32 * 7 * 7, z_dimension)
         self.encoder_fc2 = nn.Linear(32 * 7 * 7, z_dimension)
-        self.Sigmoid = nn.Sigmoid()
         self.decoder_fc = nn.Linear(z_dimension, 32 * 7 * 7)
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(32, 16, 4, 2, 1),
@@ -93,8 +93,8 @@ def loss_function(recon_x, x, mean, std):
 # 创建对象
 vae = VAE().to(device)
 # vae.load_state_dict(torch.load('./VAE_z2.pth'))
-vae_optimizer = torch.optim.Adam(vae.parameters(), lr=0.0003,
-                                 betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+vae_optimizer = torch.optim.Adam(vae.parameters(), lr=0.001,
+                                 betas=(0.9, 0.999), eps=1e-08, weight_decay=0.0001)
 ###########################进入训练##判别器的判断过程#####################
 for epoch in range(num_epoch):  # 进行多个epoch的训练
     for i, (img, _) in enumerate(dataloader):
